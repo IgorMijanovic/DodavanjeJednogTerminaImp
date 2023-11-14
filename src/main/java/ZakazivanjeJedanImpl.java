@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -155,6 +159,66 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     @Override
     public boolean dodavanjeProstorija(String... strings) {
+        List<String> args = new ArrayList<>(Arrays.asList(strings));
+
+        String putanjaMetaData = args.get(0);
+        try {
+            FileReader fr = new FileReader(putanjaMetaData);
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+            int flag= 0;
+            while ((line = br.readLine()) != null){
+
+//                System.out.println(line);
+                if(line.equals("PROSTOR") || line.equals("RADNOVREME") || line.equals("NERADNIDANI")){
+                    if(line.equals("PROSTOR"))
+                        flag = 1;
+
+                    if(line.equals("RADNOVREME"))
+                        flag = 2;
+
+                    if(line.equals("NERADNIDANI"))
+                        flag = 3;
+
+                    continue;
+                }
+                if (flag == 1) {
+                    String[] delovi = line.split("-");
+
+                    String imeSobe = delovi[0];
+//                    System.out.println(imeSobe);
+                    int brojMesta = Integer.parseInt(delovi[1]);
+//                    System.out.println(brojMesta);
+
+                    Prostor prostor = new Prostor(imeSobe, brojMesta);
+                    for(int i = 2; i< delovi.length; i++){
+                        String[] dodatak = delovi[i].split(":");
+                        prostor.getDodaci().put(dodatak[0], dodatak[1]);
+                    }
+                    System.out.println(prostor);
+                    getProstori().add(prostor);
+                }
+                if(flag == 2){
+                    String[] delovi1 = line.split("-");
+                    System.out.println(delovi1[0] + "-" + delovi1[1]);
+                    setPocetakRadnogVremena(Integer.parseInt(delovi1[0]));
+                    setKrajRadnogVremena(Integer.parseInt(delovi1[1]));
+                }
+                if(flag == 3){
+
+                }
+
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        for (Prostor p : getProstori()){
+            System.out.println(p);
+        }
         return false;
     }
 }
