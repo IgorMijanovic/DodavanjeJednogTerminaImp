@@ -3,6 +3,8 @@ import java.util.*;
 
 public class ZakazivanjeJedanImpl extends ObradaTermina{
 
+    private Map<String, String> premenstanjeMapa = new HashMap<>();
+
     private boolean provera(Termin t1, Termin t2){
         if (t1.getPocetak().getYear()==t2.getPocetak().getYear() && t1.getPocetak().getMonth()==t2.getPocetak().getMonth() && t1.getPocetak().getDayOfMonth()==t2.getPocetak().getDayOfMonth()){
             if (t1.getPocetak().getHour() >= t2.getKraj().getHour() || t1.getKraj().getHour() <= t2.getPocetak().getHour()){
@@ -18,25 +20,19 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         }
 
     }
-    @Override
-    public boolean dodajNoviTermin(String... strings) {
-//        List<String> args = new ArrayList<>();
-//        for(String s: strings)
-//            args.add(s);
-        List<String> args = new ArrayList<>(Arrays.asList(strings));
 
+    private Termin napraviTermon(String soba, String vremePocetak, String vremeKraj, String datum){
         String prostor;
 
         int pocetakSat;
         int krajSat;
-        String datum;
 
-        prostor = args.get(0);
+        prostor = soba;
 
-        pocetakSat = Integer.parseInt(args.get(1));
-        krajSat = Integer.parseInt(args.get(2));
+        pocetakSat = Integer.parseInt(vremePocetak);
+        krajSat = Integer.parseInt(vremeKraj);
 
-        datum = args.get(3);
+
         String[] datumSplit = datum.split("\\.");
         int d, m, g;
 //        System.out.println(datumSplit[0] +":" + datumSplit[1] +":" + datumSplit[2]);
@@ -46,22 +42,34 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
         LocalDateTime pocetak = LocalDateTime.of(g, m, d, pocetakSat, 0);
         LocalDateTime kraj = LocalDateTime.of(g, m, d, krajSat, 0);
-
-
-
-        Map<String, String> dodaci = new HashMap<>();
-        if(args.size() > 4){
-
-            for(int i = 4; i < args.size(); i++){
-                String[] dodatak = args.get(i).split(":");
-                dodaci.put(dodatak[0], dodatak[1]);
-            }
-        }
-//        System.out.println(dodaci);
-
         Termin t = new Termin(null, pocetak, kraj);
-        t.setDodaci(dodaci);
-        t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
+        return t;
+    }
+    @Override
+    public boolean dodajNoviTermin(String... strings) {
+
+        List<String> args = new ArrayList<>(Arrays.asList(strings));
+        Termin t;
+        if(!args.get(0).equals("P")) {
+
+            Map<String, String> dodaci = new HashMap<>();
+            if (args.size() > 4) {
+
+                for (int i = 4; i < args.size(); i++) {
+                    String[] dodatak = args.get(i).split(":");
+                    dodaci.put(dodatak[0], dodatak[1]);
+                }
+            }
+
+
+            t = napraviTermon(args.get(0), args.get(1), args.get(2), args.get(3));
+            t.setDodaci(dodaci);
+            t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
+        }else{
+            t = napraviTermon(args.get(1), args.get(2), args.get(3), args.get(4));
+            t.setDodaci(premenstanjeMapa);
+            t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
+        }
         //System.out.println(t);
 
         List<Termin> zakazani = getRaspored();
@@ -93,33 +101,17 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
     public boolean brisanjeTermina(String... strings) {
         List<String> args = new ArrayList<>(Arrays.asList(strings));
 
-        String prostorB;
+        Termin t;
+        if(!args.get(0).equals("P")) {
+            t = napraviTermon(args.get(0), args.get(1), args.get(2), args.get(3));
+            t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
+        }
+        else {
+            t = napraviTermon(args.get(1), args.get(2), args.get(3), args.get(4));
+            t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
+        }
 
-        int pocetakSatB;
-        int krajSatB;
 
-        String datumB;
-
-        prostorB = args.get(0);
-
-        pocetakSatB = Integer.parseInt(args.get(1));
-        krajSatB = Integer.parseInt(args.get(2));
-
-        datumB = args.get(3);
-        String[] datumSplit = datumB.split("\\.");
-        int d, m, g;
-//        System.out.println(datumSplit[0] +":" + datumSplit[1] +":" + datumSplit[2]);
-        d = Integer.parseInt(datumSplit[0]);
-        m = Integer.parseInt(datumSplit[1]);
-        g = Integer.parseInt(datumSplit[2]);
-        pocetakSatB = Integer.parseInt(args.get(1));
-        krajSatB = Integer.parseInt(args.get(2));
-
-        LocalDateTime pocetak = LocalDateTime.of(g, m, d, pocetakSatB, 0);
-        LocalDateTime kraj = LocalDateTime.of(g, m, d, krajSatB, 0);
-
-        Termin t = new Termin(null, pocetak, kraj);
-        t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
 
         List<Termin> zakazani = getRaspored();
         if (zakazani.isEmpty()){
@@ -133,7 +125,8 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             if(provera(t, z) ){
 
                 System.out.println("termin za brisanje je pronadjen");
-
+                if(args.get(0).equals("P"))
+                    premenstanjeMapa = z.getDodaci();
                 System.out.println(i);
                 break;
             }
@@ -150,6 +143,13 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     @Override
     public boolean premestanjeTermina(String... strings) {
+        List<String> args = new ArrayList<>(Arrays.asList(strings));
+
+
+        brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3));
+//        System.out.println(premenstanjeMapa);
+        dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4));
+
         return false;
     }
 
