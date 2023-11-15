@@ -9,19 +9,72 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     private Map<String, String> premenstanjeMapa = new HashMap<>();
 
-    private boolean provera(Termin t1, Termin t2){
-        if (t1.getPocetak().getYear()==t2.getPocetak().getYear() && t1.getPocetak().getMonth()==t2.getPocetak().getMonth() && t1.getPocetak().getDayOfMonth()==t2.getPocetak().getDayOfMonth()){
-            if (t1.getPocetak().getHour() >= t2.getKraj().getHour() || t1.getKraj().getHour() <= t2.getPocetak().getHour()){
-                // System.out.println("Slobodan");
-                return false;
-            }else {
-                // System.out.println("Zauzetttttttttttt");
-                return true;
-            }
-        }else {
-            //System.out.println("zauzet");
+    /**
+     *vraca true ako se datumi poklapaju, ako ne onda false
+     */
+    private boolean proveriDatum(Termin noviTermin, Termin postojeciTermin){
+        if(noviTermin.getPocetak().getYear()==postojeciTermin.getPocetak().getYear()
+                && noviTermin.getPocetak().getMonth()==postojeciTermin.getPocetak().getMonth()
+                && noviTermin.getPocetak().getDayOfMonth()==postojeciTermin.getPocetak().getDayOfMonth()){
+            return true;
+
+        }
+        return false;
+    }
+
+    /**
+     *ako se termini poklapaju vraca true, ako se ne poklapaju onda false
+     */
+    private boolean proveriVreme(Termin novi, Termin postojeci){
+        if((novi.getPocetak().getHour() < postojeci.getPocetak().getHour() && novi.getKraj().getHour() < postojeci.getPocetak().getHour())
+        || (novi.getPocetak().getHour() > postojeci.getKraj().getHour() && novi.getKraj().getHour() > postojeci.getKraj().getHour())){
             return false;
         }
+        return true;
+    }
+
+    /**
+     * ako se sobe poklapaju vraca true, ako ne onda false
+     */
+    private boolean proveriSobe(Termin novi, Termin postojeci){
+        if(novi.getProstor().getIme().equals(postojeci.getProstor().getIme())){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean provera(Termin t1, Termin t2){
+        if(proveriDatum(t1,t2)){
+            System.out.println("proverava datum");
+            if (proveriVreme(t1, t2)){
+                System.out.println("proverava vreme");
+                if(proveriSobe(t1,t2)){
+                    System.out.println("proverava sobu");
+                    return true;
+                }else
+                    return false;
+            }else
+                return false;
+        }else
+            return false;
+//        if (t1.getPocetak().getYear()==t2.getPocetak().getYear() && t1.getPocetak().getMonth()==t2.getPocetak().getMonth() && t1.getPocetak().getDayOfMonth()==t2.getPocetak().getDayOfMonth()){
+//            if (t1.getPocetak().getHour() >= t2.getKraj().getHour() || t1.getKraj().getHour() <= t2.getPocetak().getHour()){
+//                // System.out.println("Slobodan");
+//                return false;
+//            }else {
+//                // System.out.println("Zauzetttttttttttt");
+//                if(t1.getProstor().getIme().equals(t2.getProstor().getIme())){
+//                    return true;
+//                }else{
+//                    return false;
+//                }
+//
+//            }
+//        }else {
+//            //System.out.println("zauzet");
+//            return false;
+//        }
+
 
     }
 
@@ -99,7 +152,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         List<Termin> zakazani = getRaspored();
         if (zakazani.isEmpty()){
             getRaspored().add(t);
-            System.out.println("dodati prazna lista");
+//            System.out.println("dodati prazna lista");
             return true;
         }
 
@@ -111,7 +164,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             }
         }
 
-        System.out.println("dodat kroz proveru");
+//        System.out.println("dodat kroz proveru");
         getRaspored().add(t);
         return true;
 
