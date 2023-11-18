@@ -9,29 +9,110 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     private Map<String, String> premenstanjeMapa = new HashMap<>();
 
-    private boolean provera(Termin t1, Termin t2){
-        if (t1.getPocetak().getYear()==t2.getPocetak().getYear() && t1.getPocetak().getMonth()==t2.getPocetak().getMonth() && t1.getPocetak().getDayOfMonth()==t2.getPocetak().getDayOfMonth()){
-            if (t1.getPocetak().getHour() >= t2.getKraj().getHour() || t1.getKraj().getHour() <= t2.getPocetak().getHour()){
-                // System.out.println("Slobodan");
-                return false;
-            }else {
-                // System.out.println("Zauzetttttttttttt");
-                return true;
-            }
-        }else {
-            //System.out.println("zauzet");
+    /**
+     *vraca true ako se datumi poklapaju, ako ne onda false
+     */
+    private boolean proveriDatum(Termin noviTermin, Termin postojeciTermin){
+        if(noviTermin.getPocetak().getYear()==postojeciTermin.getPocetak().getYear()
+                && noviTermin.getPocetak().getMonth()==postojeciTermin.getPocetak().getMonth()
+                && noviTermin.getPocetak().getDayOfMonth()==postojeciTermin.getPocetak().getDayOfMonth()){
+            return true;
+
+        }
+        return false;
+    }
+
+    /**
+     *ako se termini poklapaju vraca true, ako se ne poklapaju onda false
+     */
+    private boolean proveriVreme(Termin novi, Termin postojeci){
+        if((novi.getPocetak().getHour() < postojeci.getPocetak().getHour() && novi.getKraj().getHour() < postojeci.getPocetak().getHour())
+        || (novi.getPocetak().getHour() > postojeci.getKraj().getHour() && novi.getKraj().getHour() > postojeci.getKraj().getHour())){
             return false;
         }
+        return true;
+    }
+
+    /**
+     * ako se sobe poklapaju vraca true, ako ne onda false
+     */
+    private boolean proveriSobe(Termin novi, Termin postojeci){
+        if(novi.getProstor().getIme().equals(postojeci.getProstor().getIme())){
+            return true;
+        }
+        return false;
+    }
+    private boolean proveriNeradneDane(Termin novi){
+        for(LocalDateTime ldt: getNeradniDani()){
+            if(ldt.getYear() == novi.getPocetak().getYear()
+                    && ldt.getMonth() == novi.getPocetak().getMonth()
+                    && ldt.getDayOfMonth() == novi.getPocetak().getDayOfMonth()){
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    private boolean proveriRadnoVreme(Termin novi){
+        if((novi.getPocetak().getHour() > getPocetakRadnogVremena() && novi.getPocetak().getHour() < getKrajRadnogVremena())
+                && (novi.getKraj().getHour() > getPocetakRadnogVremena() && novi.getKraj().getHour() < getKrajRadnogVremena())){
+            return  true;
+        }
+        return false;
+    }
+
+    private boolean provera(Termin t1, Termin t2){
+
+        if(proveriNeradneDane(t1)){
+            return true;
+        }
+
+        if(!proveriRadnoVreme(t1)){
+            return true;
+        }
+
+        if(proveriDatum(t1,t2)){
+            System.out.println("proverava datum");
+            if (proveriVreme(t1, t2)){
+                System.out.println("proverava vreme");
+                if(proveriSobe(t1,t2)){
+                    System.out.println("proverava sobu");
+                    return true;
+                }else
+                    return false;
+            }else
+                return false;
+        }else
+            return false;
+
+
 
     }
 
     private Termin napraviTermon(String soba, String vremePocetak, String vremeKraj, String datum){
-        String prostor;
 
+        int i = -1;
+        boolean flag = false;
+        for(Prostor p : getProstori()){
+            i++;
+            if(p.getIme().equals(soba)){
+                flag = true;
+                break;
+            }
+
+        }
+        Prostor prostor;
+        if (flag) {
+           prostor = getProstori().get(i);
+        }else {
+            System.out.println("prostor ne postoji");
+            return null;
+        }
         int pocetakSat;
         int krajSat;
 
-        prostor = soba;
+
 
         pocetakSat = Integer.parseInt(vremePocetak);
         krajSat = Integer.parseInt(vremeKraj);
@@ -46,7 +127,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
         LocalDateTime pocetak = LocalDateTime.of(g, m, d, pocetakSat, 0);
         LocalDateTime kraj = LocalDateTime.of(g, m, d, krajSat, 0);
-        Termin t = new Termin(null, pocetak, kraj);
+        Termin t = new Termin(prostor, pocetak, kraj);
         return t;
     }
     @Override
@@ -67,6 +148,10 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
 
             t = napraviTermon(args.get(0), args.get(1), args.get(2), args.get(3));
+            if(t == null){
+                System.out.println("termin nije zakazan jer soba ne postoji");
+                return false;
+            }
             t.setDodaci(dodaci);
             t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
         }else{
@@ -79,7 +164,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         List<Termin> zakazani = getRaspored();
         if (zakazani.isEmpty()){
             getRaspored().add(t);
-            System.out.println("dodati prazna lista");
+//            System.out.println("dodati prazna lista");
             return true;
         }
 
@@ -91,7 +176,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             }
         }
 
-        System.out.println("dodat kroz proveru");
+//        System.out.println("dodat kroz proveru");
         getRaspored().add(t);
         return true;
 
@@ -131,13 +216,13 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
                 System.out.println("termin za brisanje je pronadjen");
                 if(args.get(0).equals("P"))
                     premenstanjeMapa = z.getDodaci();
-                System.out.println(i);
+//                System.out.println(i);
                 break;
             }
 
         }
 
-        System.out.println(i);
+//        System.out.println(i);
         getRaspored().remove(i);
         return true;
 
@@ -196,17 +281,26 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
                         String[] dodatak = delovi[i].split(":");
                         prostor.getDodaci().put(dodatak[0], dodatak[1]);
                     }
-                    System.out.println(prostor);
+//                    System.out.println(prostor);
                     getProstori().add(prostor);
                 }
                 if(flag == 2){
                     String[] delovi1 = line.split("-");
-                    System.out.println(delovi1[0] + "-" + delovi1[1]);
+//                    System.out.println(delovi1[0] + "-" + delovi1[1]);
                     setPocetakRadnogVremena(Integer.parseInt(delovi1[0]));
                     setKrajRadnogVremena(Integer.parseInt(delovi1[1]));
                 }
                 if(flag == 3){
+//                    System.out.println(line);
+                    String[] datumSplit = line.split("\\.");
+                    int d, m, g;
+//        System.out.println(datumSplit[0] +":" + datumSplit[1] +":" + datumSplit[2]);
+                    d = Integer.parseInt(datumSplit[0]);
+                    m = Integer.parseInt(datumSplit[1]);
+                    g = Integer.parseInt(datumSplit[2]);
 
+                    LocalDateTime neradniDan = LocalDateTime.of(g, m, d, 0, 0);
+                    getNeradniDani().add(neradniDan);
                 }
 
             }
@@ -216,9 +310,12 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             throw new RuntimeException(e);
         }
 
-        for (Prostor p : getProstori()){
-            System.out.println(p);
-        }
+//        for (Prostor p : getProstori()){
+//            System.out.println(p);
+//
+//        }
+//        System.out.println("neradni: " + getNeradniDani());
+//        System.out.println(getNeradniDani());
         return false;
     }
 }
