@@ -42,8 +42,36 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         }
         return false;
     }
+    private boolean proveriNeradneDane(Termin novi){
+        for(LocalDateTime ldt: getNeradniDani()){
+            if(ldt.getYear() == novi.getPocetak().getYear()
+                    && ldt.getMonth() == novi.getPocetak().getMonth()
+                    && ldt.getDayOfMonth() == novi.getPocetak().getDayOfMonth()){
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    private boolean proveriRadnoVreme(Termin novi){
+        if((novi.getPocetak().getHour() > getPocetakRadnogVremena() && novi.getPocetak().getHour() < getKrajRadnogVremena())
+                && (novi.getKraj().getHour() > getPocetakRadnogVremena() && novi.getKraj().getHour() < getKrajRadnogVremena())){
+            return  true;
+        }
+        return false;
+    }
 
     private boolean provera(Termin t1, Termin t2){
+
+        if(proveriNeradneDane(t1)){
+            return true;
+        }
+
+        if(!proveriRadnoVreme(t1)){
+            return true;
+        }
+
         if(proveriDatum(t1,t2)){
             System.out.println("proverava datum");
             if (proveriVreme(t1, t2)){
@@ -57,23 +85,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
                 return false;
         }else
             return false;
-//        if (t1.getPocetak().getYear()==t2.getPocetak().getYear() && t1.getPocetak().getMonth()==t2.getPocetak().getMonth() && t1.getPocetak().getDayOfMonth()==t2.getPocetak().getDayOfMonth()){
-//            if (t1.getPocetak().getHour() >= t2.getKraj().getHour() || t1.getKraj().getHour() <= t2.getPocetak().getHour()){
-//                // System.out.println("Slobodan");
-//                return false;
-//            }else {
-//                // System.out.println("Zauzetttttttttttt");
-//                if(t1.getProstor().getIme().equals(t2.getProstor().getIme())){
-//                    return true;
-//                }else{
-//                    return false;
-//                }
-//
-//            }
-//        }else {
-//            //System.out.println("zauzet");
-//            return false;
-//        }
+
 
 
     }
@@ -280,7 +292,15 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
                 }
                 if(flag == 3){
 //                    System.out.println(line);
-                    getNeradniDani().add(line);
+                    String[] datumSplit = line.split("\\.");
+                    int d, m, g;
+//        System.out.println(datumSplit[0] +":" + datumSplit[1] +":" + datumSplit[2]);
+                    d = Integer.parseInt(datumSplit[0]);
+                    m = Integer.parseInt(datumSplit[1]);
+                    g = Integer.parseInt(datumSplit[2]);
+
+                    LocalDateTime neradniDan = LocalDateTime.of(g, m, d, 0, 0);
+                    getNeradniDani().add(neradniDan);
                 }
 
             }
@@ -295,6 +315,7 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 //
 //        }
 //        System.out.println("neradni: " + getNeradniDani());
+//        System.out.println(getNeradniDani());
         return false;
     }
 }
