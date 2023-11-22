@@ -9,6 +9,16 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     private Map<String, String> premenstanjeMapa = new HashMap<>();
 
+    public ZakazivanjeJedanImpl() {
+    }
+
+    static{
+//        System.out.println("static");
+        ZakazivanjeJedanImpl impl1 = new ZakazivanjeJedanImpl();
+//        System.out.println(impl1);
+        setObj(impl1);
+    }
+
     /**
      *vraca true ako se datumi poklapaju, ako ne onda false
      */
@@ -159,12 +169,12 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             t.setDodaci(premenstanjeMapa);
             t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
         }
-        //System.out.println(t);
+        System.out.println(t);
 
         List<Termin> zakazani = getRaspored();
         if (zakazani.isEmpty()){
             getRaspored().add(t);
-//            System.out.println("dodati prazna lista");
+            System.out.println("dodati prazna lista");
             return true;
         }
 
@@ -176,8 +186,9 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             }
         }
 
-//        System.out.println("dodat kroz proveru");
+        System.out.println("dodat kroz proveru");
         getRaspored().add(t);
+        System.out.println("termin dodat");
         return true;
 
 
@@ -235,10 +246,12 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         List<String> args = new ArrayList<>(Arrays.asList(strings));
 
 
-        brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3));
-//        System.out.println(premenstanjeMapa);
-        dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4));
-
+//        brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3));
+////        System.out.println(premenstanjeMapa);
+//        dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4));
+        if(brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3))
+                && dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4)))
+            return true;
         return false;
     }
 
