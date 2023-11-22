@@ -9,6 +9,16 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
 
     private Map<String, String> premenstanjeMapa = new HashMap<>();
 
+    public ZakazivanjeJedanImpl() {
+    }
+
+    static{
+//        System.out.println("static");
+        ZakazivanjeJedanImpl impl1 = new ZakazivanjeJedanImpl();
+//        System.out.println(impl1);
+        setObj(impl1);
+    }
+
     /**
      *vraca true ako se datumi poklapaju, ako ne onda false
      */
@@ -159,12 +169,12 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             t.setDodaci(premenstanjeMapa);
             t.setTipZakazivanja(PrvaDrugaImp.PRVA_IMP);
         }
-        //System.out.println(t);
+        System.out.println(t);
 
         List<Termin> zakazani = getRaspored();
         if (zakazani.isEmpty()){
             getRaspored().add(t);
-//            System.out.println("dodati prazna lista");
+            System.out.println("dodati prazna lista");
             return true;
         }
 
@@ -176,8 +186,9 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
             }
         }
 
-//        System.out.println("dodat kroz proveru");
+        System.out.println("dodat kroz proveru");
         getRaspored().add(t);
+        System.out.println("termin dodat");
         return true;
 
 
@@ -235,87 +246,14 @@ public class ZakazivanjeJedanImpl extends ObradaTermina{
         List<String> args = new ArrayList<>(Arrays.asList(strings));
 
 
-        brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3));
-//        System.out.println(premenstanjeMapa);
-        dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4));
-
+//        brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3));
+////        System.out.println(premenstanjeMapa);
+//        dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4));
+        if(brisanjeTermina("P",args.get(0),args.get(1),args.get(2), args.get(3))
+                && dodajNoviTermin("P",args.get(0), args.get(1), args.get(2), args.get(4)))
+            return true;
         return false;
     }
 
-    @Override
-    public boolean dodavanjeProstorija(String... strings) {
-        List<String> args = new ArrayList<>(Arrays.asList(strings));
 
-        String putanjaMetaData = args.get(0);
-        try {
-            FileReader fr = new FileReader(putanjaMetaData);
-            BufferedReader br = new BufferedReader(fr);
-
-            String line;
-            int flag= 0;
-            while ((line = br.readLine()) != null){
-
-//                System.out.println(line);
-                if(line.equals("PROSTOR") || line.equals("RADNOVREME") || line.equals("NERADNIDANI")){
-                    if(line.equals("PROSTOR"))
-                        flag = 1;
-
-                    if(line.equals("RADNOVREME"))
-                        flag = 2;
-
-                    if(line.equals("NERADNIDANI"))
-                        flag = 3;
-
-                    continue;
-                }
-                if (flag == 1) {
-                    String[] delovi = line.split("-");
-
-                    String imeSobe = delovi[0];
-//                    System.out.println(imeSobe);
-                    int brojMesta = Integer.parseInt(delovi[1]);
-//                    System.out.println(brojMesta);
-
-                    Prostor prostor = new Prostor(imeSobe, brojMesta);
-                    for(int i = 2; i< delovi.length; i++){
-                        String[] dodatak = delovi[i].split(":");
-                        prostor.getDodaci().put(dodatak[0], dodatak[1]);
-                    }
-//                    System.out.println(prostor);
-                    getProstori().add(prostor);
-                }
-                if(flag == 2){
-                    String[] delovi1 = line.split("-");
-//                    System.out.println(delovi1[0] + "-" + delovi1[1]);
-                    setPocetakRadnogVremena(Integer.parseInt(delovi1[0]));
-                    setKrajRadnogVremena(Integer.parseInt(delovi1[1]));
-                }
-                if(flag == 3){
-//                    System.out.println(line);
-                    String[] datumSplit = line.split("\\.");
-                    int d, m, g;
-//        System.out.println(datumSplit[0] +":" + datumSplit[1] +":" + datumSplit[2]);
-                    d = Integer.parseInt(datumSplit[0]);
-                    m = Integer.parseInt(datumSplit[1]);
-                    g = Integer.parseInt(datumSplit[2]);
-
-                    LocalDateTime neradniDan = LocalDateTime.of(g, m, d, 0, 0);
-                    getNeradniDani().add(neradniDan);
-                }
-
-            }
-
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-//        for (Prostor p : getProstori()){
-//            System.out.println(p);
-//
-//        }
-//        System.out.println("neradni: " + getNeradniDani());
-//        System.out.println(getNeradniDani());
-        return false;
-    }
 }
